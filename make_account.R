@@ -92,19 +92,21 @@ set.seed(0)
 account_no_correction <- Movements(population = population,
                                    births = births,
                                    entries = list(immigration = immigration),
-                                   exits = list(emigration = emigration))
+                                   exits = list(deaths = deaths,
+                                                emigration = emigration))
 summary(account_no_correction) ## note that 'all cells consistent' is FALSE
 
 
 account_with_correction <- Movements(population = population,
                                      births = births,
                                      entries = list(immigration = immigration),
-                                     exits = list(emigration = emigration),
+                                     exits = list(deaths = deaths,
+                                                  emigration = emigration),
                                      net = list(correction = correction))
 summary(account_with_correction) ## note that 'all cells consistent' is FALSE
 
 ## Apply crude (and very slow!) method to make accounts consistent
-account_consistent <- makeConsistent(account_with_correction)
+account_consistent <- makeConsistent(account_no_correction)
 summary(account_consistent)
 
 
