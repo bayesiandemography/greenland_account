@@ -18,7 +18,6 @@ data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE8
            event,
            time,
            count = "Population Account") %>%
-    filter(count > 0) %>%
     mutate(sex = factor(sex,
                         levels = c("Woman", "Man"),
                         labels = c("Female", "Male"))) %>%
@@ -26,7 +25,8 @@ data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE8
            time = as.integer(time)) %>%
     mutate(age = if_else(event == "Status ultimo", # uses fact that population counts are at end of year
                          time - cohort,
-                         time - cohort - (triangle == "Upper")))
+                         time - cohort - (triangle == "Upper"))) %>%
+    filter(age >= 0) ## excludes 7 corrections where age < 0
 
 ## get births data from a live births table, which,
 ## unlike the population account table,
