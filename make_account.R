@@ -43,7 +43,8 @@ births_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/B
 
 ## Make components of demographic account -------------------------------------
 
-age_max <- max(data_df$age)
+## can't use maximum age from 'data_df', since this goes up to 120
+age_max <- 102 ## 
 ## add extra, unused open age group because accounts need to have open age group
 age_levels <- c(seq.int(from = 0, to = age_max), "103+") 
 
