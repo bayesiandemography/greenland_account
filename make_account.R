@@ -161,7 +161,7 @@ components_diff <- (-sum(deaths_check$count)
 all.equal(population_diff, components_diff) ## currently differ by 1
     
 
-## Annual sum of corrections
+## Analysis of corrections ----------------------------------------------------
 
 corrections_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
                                  query =   list(cohort = "*",
