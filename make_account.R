@@ -23,7 +23,7 @@ data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE8
                         labels = c("Female", "Male"))) %>%
     mutate(cohort = as.integer(as.character(cohort)),
            time = as.integer(as.character(time))) %>%
-    mutate(age = if_else(event == "Status ultimo", # uses fact that population counts are at end of year
+    mutate(age = if_else(event == "Population (end of year)", # uses fact that population counts are at end of year
                          time - cohort,
                          time - cohort - (triangle == "Upper"))) %>%
     filter(age >= 0) ## excludes 7 corrections where age < 0
@@ -49,7 +49,7 @@ age_max <- 102 ##
 age_levels <- c(seq.int(from = 0, to = age_max), "103+") 
 
 population <- data_df %>%
-    filter(event == "Status ultimo") %>%
+    filter(event == "Population (end of year)") %>%
     mutate(age = factor(age, levels = age_levels)) %>%
   dtabs(count ~ age + sex + time) %>%
   Counts(dimscales = c(age = "Intervals", time = "Points"))
@@ -79,7 +79,7 @@ emigration <- data_df %>%
 correction <- data_df %>%
     filter(event == "Correction") %>%
     mutate(age = factor(age, levels = age_levels)) %>%
-    dtabs(count ~ age + sex + triangle + time) %>%
+    dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 
@@ -114,7 +114,7 @@ summary(account_consistent)
 ## Problem with accounting ----------------------------------------------------
 
 population_check <- data_df %>%
-    filter(event == "Status ultimo",
+    filter(event == "Population (end of year)",
            sex == "Female",
            cohort == 1993,
            time %in% 1993:1994)
