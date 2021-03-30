@@ -26,7 +26,7 @@ data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE8
     mutate(age = if_else(event == "Population (end of year)", # uses fact that population counts are at end of year
                          time - cohort,
                          time - cohort - (triangle == "Upper"))) %>%
-    filter(age >= 0) ## excludes 7 corrections where age < 0
+    filter((age >= 0) | (event == "Correction"))
 
 ## get births data from a live births table, which,
 ## unlike the population account table,
@@ -39,45 +39,51 @@ births_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/B
     select(age, sex = gender, time, count = Livebirth) %>%
     mutate(sex = factor(sex, levels = c("Girls", "Boys"), labels = c("Female", "Male")))
            
-    
 
 ## Make components of demographic account -------------------------------------
 
 ## can't use maximum age from 'data_df', since this goes up to 120
 age_max <- 102 ## 
 ## add extra, unused open age group because accounts need to have open age group
-age_levels <- c(seq.int(from = 0, to = age_max), "103+") 
+age_levels <- c(seq.int(from = 0, to = age_max), "103+")
+
+time_min <- 1993
 
 population <- data_df %>%
     filter(event == "Population (end of year)") %>%
     mutate(age = factor(age, levels = age_levels)) %>%
-  dtabs(count ~ age + sex + time) %>%
-  Counts(dimscales = c(age = "Intervals", time = "Points"))
+    dtabs(count ~ age + sex + time) %>%
+    Counts(dimscales = c(age = "Intervals", time = "Points"))
 
 births <- births_df %>%
+    filter(time > time_min) %>%
     dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 deaths <- data_df %>%
     filter(event == "Death") %>%
+    filter(time > time_min) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 immigration <- data_df %>%
     filter(event == "Immigration") %>%
+    filter(time > time_min) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 emigration <- data_df %>%
     filter(event == "Emigration") %>%
+    filter(time > time_min) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 correction <- data_df %>%
     filter(event == "Correction") %>%
+    filter(time > time_min) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
@@ -155,9 +161,28 @@ components_diff <- (-sum(deaths_check$count)
 all.equal(population_diff, components_diff) ## currently differ by 1
     
 
+## Analysis of corrections ----------------------------------------------------
 
+corrections_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
+                                 query =   list(cohort = "*",
+                                                "place of birth" = "T",
+                                                gender = c("M", "K"),
+                                                "triangles(Lexis)" = "*",
+                                                event = "C",
+                                                time = "*")) %>%
+    select(cohort,
+           triangle = "triangles(Lexis)",
+           time,
+           count = "Population Account") %>%
+    mutate(age = as.integer(time) - as.integer(cohort) - (triangle == "Upper"))
 
+## annual totals
+corrections_df %>%
+    count(time, wt = count)
 
+## some with age < 0
+corrections_df %>%
+    filter(age < 0, count > 0)
 
 
 data_corr <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
