@@ -21,8 +21,8 @@ data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE8
     mutate(sex = factor(sex,
                         levels = c("Woman", "Man"),
                         labels = c("Female", "Male"))) %>%
-    mutate(cohort = as.integer(cohort),
-           time = as.integer(time)) %>%
+    mutate(cohort = as.integer(as.character(cohort)),
+           time = as.integer(as.character(time))) %>%
     mutate(age = if_else(event == "Status ultimo", # uses fact that population counts are at end of year
                          time - cohort,
                          time - cohort - (triangle == "Upper"))) %>%
@@ -160,3 +160,11 @@ all.equal(population_diff, components_diff) ## currently differ by 1
 
 
 
+data_corr <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
+                          query =   list(cohort = "*",
+                                         "place of birth" = "T",
+                                         gender = "*",
+                                         "triangles(Lexis)" = "*",
+                                         event = "C",
+                                         time = "2020"))
+    
