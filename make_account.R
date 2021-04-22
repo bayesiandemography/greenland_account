@@ -3,66 +3,72 @@ library(tidyverse)
 library(demest)
 library(pxweb)
 
-## Download and reformat data -------------------------------------------------
 
-data_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
-                          query =   list(cohort = "*",
-                                         "place of birth" = "T",
-                                         gender = c("M", "K"),
-                                         "triangles(Lexis)" = "*",
-                                         event = "*",
-                                         time = "*")) %>%
-    select(cohort,
-           sex = gender,
-           triangle = "triangles(Lexis)",
-           event,
-           time,
-           count = "Population Account") %>%
-    mutate(sex = factor(sex,
-                        levels = c("Woman", "Man"),
-                        labels = c("Female", "Male"))) %>%
-    mutate(cohort = as.integer(as.character(cohort)),
-           time = as.integer(as.character(time))) %>%
-    mutate(age = if_else(event == "Population (end of year)", # uses fact that population counts are at end of year
-                         time - cohort,
-                         time - cohort - (triangle == "Upper"))) %>%
-    filter((age >= 0) | (event == "Correction"))
-
-## get births data from a live births table, which,
-## unlike the population account table,
-## includes the age of the mother
-births_df <- pxweb_get_data(url = "https://bank.stat.gl/api/v1/en/Greenland/BE/BE10/BE1001/BE100120/BEXBBL3.PX",
-                            query = list("age" = "*",
-                                         "district (Mother)" = "00000",
-                                         "gender" = "*",
-                                         "time" = "*")) %>%
-    select(age, sex = gender, time, count = Livebirth) %>%
-    mutate(sex = factor(sex, levels = c("Girls", "Boys"), labels = c("Female", "Male")))
-           
-
-## Make components of demographic account -------------------------------------
+## Constants ------------------------------------------------------------------
 
 ## can't use maximum age from 'data_df', since this goes up to 120
 age_max <- 102 ## 
 ## add extra, unused open age group because accounts need to have open age group
 age_levels <- c(seq.int(from = 0, to = age_max), "103+")
+age_levels_births <- seq.int(from = 14, to = 50)
 
 time_min <- 1993
 
+
+## Download and reformat data -------------------------------------------------
+
+data_df <- pxweb_get_data(url = "http://betabank20.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALC.PX",
+                          query =   list("year of birth" = "*",
+                                         "place of birth" = "T",
+                                         gender = c("M", "K"),
+                                         "triangles(Lexis)" = "*",
+                                         event = "*",
+                                         time = "*")) %>%
+  select(cohort = "year of birth",
+         sex = gender,
+         triangle = "triangles(Lexis)",
+         event,
+         time,
+         count = "Population Accounts") %>%
+  mutate(cohort = as.integer(as.character(cohort)),
+         time = as.integer(as.character(time))) %>%
+  mutate(age = if_else(event == "Population (end of year)", # uses fact that population counts are at end of year
+                       time - cohort,
+                       time - cohort - (triangle == "Upper"))) %>%
+  filter((age >= 0) | (event == "Correction") | (age <= age_max)) %>% 
+  filter(time != "2021") %>% # Data for 2021 will be published February, 11th. 2022
+  filter(time != "1993")
+
+births_df <- pxweb_get_data(url = "http://betabank20.stat.gl/api/v1/en/Greenland/BE/BE80//BEXFERTR.PX",
+                            query = list("mother's age" = "*",
+                                         "gender" = "*",
+                                         "time" = "*")) %>%
+  select(age = "mother's age", sex = gender, time, count = "Live births by Greenland's administrative division") %>%
+  mutate(sex = factor(sex, levels = c("Female", "Male"))) %>%
+  filter(age != "13")
+
+
+
+## Make components of demographic account -------------------------------------
+
 population <- data_df %>%
     filter(event == "Population (end of year)") %>%
+    filter(!is.na(count)) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Points"))
 
 births <- births_df %>%
     filter(time > time_min) %>%
+    filter(!is.na(count)) %>%
+    mutate(age = factor(age, levels = age_levels_births)) %>%
     dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 deaths <- data_df %>%
     filter(event == "Death") %>%
     filter(time > time_min) %>%
+    filter(!is.na(count)) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
@@ -70,6 +76,7 @@ deaths <- data_df %>%
 immigration <- data_df %>%
     filter(event == "Immigration") %>%
     filter(time > time_min) %>%
+    filter(!is.na(count)) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
@@ -77,12 +84,15 @@ immigration <- data_df %>%
 emigration <- data_df %>%
     filter(event == "Emigration") %>%
     filter(time > time_min) %>%
+    filter(!is.na(count)) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + triangle + time) %>%
     Counts(dimscales = c(age = "Intervals", time = "Intervals"))
 
 correction <- data_df %>%
     filter(event == "Correction") %>%
+    filter(!is.na(count)) %>%
+    mutate(count = if_else(is.na(count), 0, count)) %>%
     filter(time > time_min) %>%
     mutate(age = factor(age, levels = age_levels)) %>%
     dtabs(count ~ age + sex + time) %>%
