@@ -1,13 +1,6 @@
 
 .PHONY: all
-all: out/model.est
-
-
-out/system_models.rds: src/system_models.R
-	Rscript $<
-
-out/data_models.rds: src/data_models.R
-	Rscript $<
+all: out/fig_account.pdf
 
 out/datasets.rds: src/datasets.R \
   ../data/reg_popn.csv \
@@ -17,15 +10,27 @@ out/datasets.rds: src/datasets.R \
   ../data/reg_emigration.csv
 	Rscript $<
 
-out/account.rds: src/account.R \
+out/data.rds: src/data.R \
   out/datasets.rds
 	Rscript $<
 
-out/model.est: src/model.R \
-  out/account.rds \
-  out/system_models.rds \
-  out/data_models.rds \
+out/rates_imem.rds: src/rates_imem.R \
   out/datasets.rds
+	Rscript $<
+
+out/covar_df.rds: src/covar_df.R \
+  out/datasets.rds \
+  out/rates_imem.rds
+	Rscript $<
+
+out/model.rds: src/model.R \
+  out/data.rds \
+  out/covar_df.rds
+	Rscript $<
+
+out/fig_account.pdf: src/fig_account.R \
+  out/datasets.rds \
+  out/model.rds
 	Rscript $<
 
 

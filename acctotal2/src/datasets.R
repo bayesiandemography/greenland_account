@@ -1,4 +1,11 @@
 
+
+## Create datasets from CSV files. Note that this is copied
+## straight from 'acctotal', and the format is a bit awkward
+## for the 'pomp' model. Depending on how things develop,
+## we may change it.
+
+
 library(dembase)
 library(dplyr)
 library(readr)

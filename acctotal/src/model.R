@@ -19,7 +19,8 @@ estimateAccount(account = account,
                 nBurnin = 1000,
                 nSim = 1000,
                 nChain = 4,
-                nThin = 5)
+                nThin = 5,
+                usePriorPopn = FALSE)
 
 options(width = 120)
 fetchSummary(filename)

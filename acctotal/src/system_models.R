@@ -3,7 +3,8 @@ library(demest)
 
 mod_popn <- Model(population ~ Poisson(mean ~ 1,
                                        useExpose = FALSE),
-                  jump = 0.01)
+                  `(Intercept)` ~ ExchFixed(mean = log(60000)),
+                  jump = 0.003)
 
 mod_births <- Model(births ~ Poisson(mean ~ 1),
                     jump = 0.05)

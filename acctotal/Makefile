@@ -1,6 +1,6 @@
 
 .PHONY: all
-all: out/model.est
+all: out/fig_account.pdf
 
 
 out/system_models.rds: src/system_models.R
@@ -26,6 +26,11 @@ out/model.est: src/model.R \
   out/system_models.rds \
   out/data_models.rds \
   out/datasets.rds
+	Rscript $<
+
+
+out/fig_account.pdf: src/fig_account.R \
+  out/model.est
 	Rscript $<
 
 
