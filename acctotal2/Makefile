@@ -14,13 +14,13 @@ out/data.rds: src/data.R \
   out/datasets.rds
 	Rscript $<
 
-out/rates_imem.rds: src/rates_imem.R \
+out/rates.rds: src/rates.R \
   out/datasets.rds
 	Rscript $<
 
 out/covar_df.rds: src/covar_df.R \
   out/datasets.rds \
-  out/rates_imem.rds
+  out/rates.rds
 	Rscript $<
 
 out/model.rds: src/model.R \

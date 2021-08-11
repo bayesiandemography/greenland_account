@@ -5,11 +5,15 @@ library(readr)
 
 ## Assemble individual datasets, using age-time format ------------------------
 
+## Assume that no one survives past 100
+
 ## Registered population 
 
 reg_popn_df  <- read_csv("../data/reg_popn.csv")
 
 reg_popn <- reg_popn_df %>%
+    mutate(age = if_else(age == "100+", "100", age),
+           age = as.integer(age)) %>%
     dtabs(count ~ age + sex + time) %>%
     Counts(dimscales = c(time = "Points"))
 
@@ -28,6 +32,8 @@ reg_births <- reg_births_df %>%
 reg_deaths_df  <- read_csv("../data/reg_deaths.csv")
 
 reg_deaths <- reg_deaths_df %>%
+    mutate(age = if_else(age == "100+", "100", age),
+           age = as.integer(age)) %>%
     dtabs(count ~ age + triangle + sex + time) %>%
     Counts(dimscales = c(time = "Intervals"))
 
@@ -37,6 +43,8 @@ reg_deaths <- reg_deaths_df %>%
 reg_immigration_df  <- read_csv("../data/reg_immigration.csv")
 
 reg_immigration <- reg_immigration_df %>%
+    mutate(age = if_else(age == "100+", "100", age),
+           age = as.integer(age)) %>%
     dtabs(count ~ age + triangle + sex + time) %>%
     Counts(dimscales = c(time = "Intervals"))
 
@@ -46,28 +54,10 @@ reg_immigration <- reg_immigration_df %>%
 reg_emigration_df  <- read_csv("../data/reg_emigration.csv")
 
 reg_emigration <- reg_emigration_df %>%
+    mutate(age = if_else(age == "100+", "100", age),
+           age = as.integer(age)) %>%
     dtabs(count ~ age + triangle + sex + time) %>%
     Counts(dimscales = c(time = "Intervals"))
-
-
-
-## Create cohort-oriented versions --------------------------------------------
-
-## Population (including accession)
-
-reg_popn_c <- reg_popn %>%
-    rotateAgeTime(to = "ct")
-
-account <- Movements(population = reg_popn,
-                     births = reg_births,
-                     entries = list(immigration = reg_immigration),
-                     exits = list(deaths = reg_deaths,
-                                  emigration = reg_emigration))
-
-accession <- accession(account)
-
-accession_c <- accession %>%
-    rotateAgeTime(to = "ct")
 
 
 ## Combine into list and save -------------------------------------------------

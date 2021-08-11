@@ -1,118 +1,103 @@
 
-library(demest)
-library(ggplot2)
+library(pomp) ## have to load first, because of namespace conflicts
 library(dplyr)
 library(tidyr)
 library(purrr)
+library(ggplot2) 
+
 
 prob <- c(0.025, 0.5, 0.975)
 
+model <- readRDS("out/model.rds")
 
+datasets <- readRDS("out/datasets.rds")
+
+
+## Extract estimated states from model and create quantiles.
+## Unfortunately, it does not seem to be possible to
+## extract weights from a 'pomp' object, which is likely
+## to reduce the accuracy of the quantiles slightly.
+
+states <- model %>%
+    saved.states() %>%
+    map(t) %>%
+    map(as.data.frame) %>%
+    bind_rows(.id = "time") %>%
+    pivot_longer(c(N, im, em)) %>%
+    group_by(time, name) %>%
+    summarise(lower = quantile(value, prob = prob[1]),
+              median = quantile(value, prob = prob[2]),
+              upper = quantile(value, prob = prob[3])) %>%
+    ungroup() %>%
+    mutate(time = as.integer(time))
+
+              
 ## Population
 
-data_popn_model <- fetch("out/model.est", where = c("account", "population")) %>%
-    collapseIterations(prob = prob) %>%
-    midpoints(dimension = "age") %>%
-    as.data.frame() %>%
-    pivot_wider(names_from = quantile, values_from = count) %>%
-    rename(lower = "2.5%", median = "50%", upper = "97.5%")
+data_popn_model <- states %>%
+    filter(name == "N")
 
-data_popn_raw <- fetch("out/model.est", where = c("datasets", "reg_popn")) %>%
-    midpoints(dimension = "age") %>%
+data_popn_raw <- datasets$reg_popn %>%
     as.data.frame() %>%
     rename(raw = count)
 
-data_popn <- inner_join(data_popn_model, data_popn_raw,
-                        by = c("age", "sex", "time"))
+data_popn <- inner_join(data_popn_model, data_popn_raw, by = "time")
 
 
-make_popn <- function(time_inner) {
-    data_inner <- filter(data_popn, time == time_inner)
-    ggplot(data_inner, aes(x = age, group = sex)) +
-        facet_wrap(vars(sex),
-                   ncol = 2) +
-        geom_errorbar(aes(ymin = lower, ymax = upper),
-                      col = "darkorange") +
-        geom_point(aes(y = median),
-                   col = "darkorange") +
-        geom_line(aes(y = median),
-                  col = "darkorange",
-                  size = 0.1) +
-        geom_point(aes(y = raw),
-                   col = "darkblue",
-                   shape = 4) +
-        ylab("") +
-        ggtitle(sprintf("Population %d", time_inner))
-}    
+## Immigration
 
+data_im_model <- states %>%
+    filter(name == "im")
 
-## Components
-
-components <- c("births", "deaths", "immigration", "emigration")
-
-data_comp_model <- map(components,
-                  function(component) fetch("out/model.est", c("account", component))) %>%
-    set_names(nm = components) %>%
-    map(collapseDimension, dimension = "triangle") %>%
-    map(collapseIterations, prob = prob) %>%
-    map(midpoints, dimension = "age") %>%
-    map(as.data.frame) %>%
-    bind_rows(.id = "component") %>%
-    pivot_wider(names_from = quantile, values_from = count) %>%
-    rename(lower = "2.5%", median = "50%", upper = "97.5%")
-
-data_comp_raw <- map(components, function(component) paste0("reg_", component)) %>%
-    map(function(dataset) fetch("out/model.est", c("datasets", dataset))) %>%
-    set_names(nm = components) %>%
-    map(collapseDimension, dimension = "triangle") %>%
-    map(midpoints, dimension = "age") %>%
-    map(as.data.frame) %>%
-    bind_rows(.id = "component") %>%
+data_im_raw <- datasets$reg_immigration %>%
+    as.data.frame() %>%
     rename(raw = count)
 
-data_comp <- inner_join(data_comp_model, data_comp_raw,
-                        by = c("component", "age", "sex", "time"))
+data_im <- inner_join(data_im_model, data_im_raw, by = "time")
 
 
-make_comp <- function(comp, time_inner) {
-    data_inner <- filter(data_comp,
-                         component == comp,
-                         time == time_inner)
-    ggplot(data_inner, aes(x = age, group = sex)) +
-        facet_wrap(vars(sex),
-                   ncol = 2) +
-        geom_errorbar(aes(ymin = lower, ymax = upper),
-                      col = "darkorange") +
-        geom_point(aes(y = median),
-                   col = "darkorange") +
-        geom_line(aes(y = median),
-                  col = "darkorange",
-                  size = 0.1) +
-        geom_point(aes(y = raw),
-                   col = "darkblue",
-                   shape = 4) +
-        ylab("") +
-        ggtitle(sprintf("%s %d", comp, time_inner))
-}    
+## Emigration
+
+data_em_model <- states %>%
+    filter(name == "em")
+
+data_em_raw <- datasets$reg_emigration %>%
+    as.data.frame() %>%
+    rename(raw = count)
+
+data_em <- inner_join(data_em_model, data_em_raw, by = "time")
+
+
+## Combine
+
+data <- bind_rows(data_popn, data_im, data_em) %>%
+    mutate(name = factor(name,
+                         levels = c("N", "im", "em"),
+                         labels = c("Population", "Immigration", "Emigration")))
+
+
+p <- ggplot(data, aes(x = time)) +
+    facet_wrap(vars(name),
+               ncol = 1,
+               scales = "free_y") +
+    geom_errorbar(aes(ymin = lower, ymax = upper),
+                  col = "darkorange") +
+    geom_point(aes(y = median),
+               col = "darkorange") +
+    geom_line(aes(y = median),
+              col = "darkorange",
+              size = 0.1) +
+    geom_point(aes(y = raw),
+               col = "darkblue",
+               shape = 4) +
+    ylab("")
 
 
 ## Plot
 
 graphics.off()
 pdf(file = "out/fig_account.pdf",
-    onefile = TRUE,
-    width = 12,
-    height = 12)
-for (time_inner in unique(data_popn$time)) {
-    p <- make_popn(time_inner = time_inner)
-    plot(p)
-}
-for (comp in components) {
-    for (time_inner in unique(data_comp$time)) {
-        p <- make_comp(comp = comp,
-                       time_inner = time_inner)
-        plot(p)
-    }
-}
+    paper = "a4")
+plot(p)
 dev.off()
 

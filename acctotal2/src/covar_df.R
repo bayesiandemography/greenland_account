@@ -10,25 +10,25 @@ library(dplyr)
 
 datasets <- readRDS("out/datasets.rds")
 
-rates_imem <- readRDS("out/rates_imem.rds")
+rates <- readRDS("out/rates.rds")
 
 
 ## Assemble birth and death counts --------------------------------------------
 
-counts_bth <- datasets$reg_births %>%
-    as.data.frame() %>%
-        rename(count_bth = count)
-
 counts_dth <- datasets$reg_deaths %>%
     as.data.frame() %>%
     rename(count_dth = count)
+
+counts_bth <- datasets$reg_births %>%
+    as.data.frame() %>%
+    rename(count_bth = count)
 
 counts_bthdth <- inner_join(counts_bth, counts_dth, by = "time")
 
 
 ## Put together into data frame -----------------------------------------------
 
-covar_df <- inner_join(counts_bthdth, rates_imem, by = "time")
+covar_df <- inner_join(counts_bthdth, rates, by = "time")
 
 ## Subtract 1 from time, because function 'pomp' uses covariates
 ## with time index 't-1' to predict outcomes with time index 't'

@@ -17,10 +17,11 @@ covar <- covar_df %>%
 
 ## Function to generate initial values for state parameters
 ## 'N' is population, 'im' is counts of immigration,
-## 'em' is counts of emigration
+## 'em' is counts of emigration, 'exposure' is
+## (approximate) person years lived during period
 
 rinit <- function(N0, ...) {
-    c(N = N0, im = 0, em = 0)
+    c(N = N0, im = 0, em = 0, exposure = 0)
 }
 
 
@@ -28,16 +29,17 @@ rinit <- function(N0, ...) {
 ## time period. The state variables 'bth' and 'dth'
 ## are counts births and deaths during that period.
 ## We are treating them as known.
-## The 'exposure' term in the step function
+## The 'exposure_approx' term in the step function
 ## is derived from the equations
 ##       N1 = N0 + bth - dth + im - rate_em * exposure
 ## exposure = 0.5 * (N0 + N1).
 step.fun <- function(N, count_bth, count_dth, rate_im, rate_em, ...) {
     im <- rpois(n = 1, lambda = rate_im)
-    exposure <- (N + 0.5 * (count_bth - count_dth + im)) / (1 + 0.5 * rate_em)
-    em <- rpois(n = 1, lambda = rate_em * exposure)
-    N <- N + count_bth - count_dth + im - em
-    c(N = N, im = im, em = em)
+    exposure_approx <- (N + 0.5 * (count_bth - count_dth + im)) / (1 + 0.5 * rate_em)
+    em <- rpois(n = 1, lambda = rate_em * exposure_approx)
+    N1 <- N + count_bth - count_dth + im - em
+    exposure <- 0.5 * (N + N1)
+    c(N = N1, im = im, em = em, exposure = exposure)
 }
 
 ## Create an 'rprocess' object from the function
@@ -50,10 +52,15 @@ rprocess <- onestep(step.fun)
 ## The data model for population, immigration,
 ## and emigration is y ~ N(x, (sx)^2).
 
-dmeasure <- function(log, YN, N, Yim, im, Yem, em, s, ...) {
+dmeasure <- function(log,
+                     YN, N, Yim, im, Yem, em, 
+                     count_bth, rate_bth, count_dth, rate_dth,
+                     exposure, s, ...) {
     dnorm(YN, mean = N, sd = s * N, log = log) +
         dnorm(Yim, mean = im, sd = s * im, log = log) + 
-        dnorm(Yem, mean = em, sd = s * em, log = log)
+        dnorm(Yem, mean = em, sd = s * em, log = log) +
+        dpois(count_bth, lambda = rate_bth * exposure, log = log) +
+        dpois(count_dth, lambda = rate_dth * exposure, log = log)
 }
 
 ## Parameters 
