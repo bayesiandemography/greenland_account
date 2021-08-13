@@ -107,7 +107,7 @@ for (time_inner in unique(data_popn$time)) {
     p <- make_popn(time_inner = time_inner)
     plot(p)
 }
-for (comp in components) {
+for (comp in c("immigration", "emigration")) {
     for (time_inner in unique(data_comp$time)) {
         p <- make_comp(comp = comp,
                        time_inner = time_inner)

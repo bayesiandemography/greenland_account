@@ -54,13 +54,13 @@ rprocess <- onestep(step.fun)
 
 dmeasure <- function(log,
                      YN, N, Yim, im, Yem, em, 
-                     count_bth, rate_bth, count_dth, rate_dth,
+                     Ybth, Yratebth, Ydth, Yratedth,
                      exposure, s, ...) {
     dnorm(YN, mean = N, sd = s * N, log = log) +
         dnorm(Yim, mean = im, sd = s * im, log = log) + 
         dnorm(Yem, mean = em, sd = s * em, log = log) +
-        dpois(count_bth, lambda = rate_bth * exposure, log = log) +
-        dpois(count_dth, lambda = rate_dth * exposure, log = log)
+        dpois(Ybth, lambda = Yratebth * exposure, log = log) +
+        dpois(Ydth, lambda = Yratedth * exposure, log = log)
 }
 
 ## Parameters 

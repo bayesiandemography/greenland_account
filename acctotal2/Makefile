@@ -10,12 +10,13 @@ out/datasets.rds: src/datasets.R \
   ../data/reg_emigration.csv
 	Rscript $<
 
-out/data.rds: src/data.R \
+out/rates.rds: src/rates.R \
   out/datasets.rds
 	Rscript $<
 
-out/rates.rds: src/rates.R \
-  out/datasets.rds
+out/data.rds: src/data.R \
+  out/datasets.rds \
+  out/rates.rds
 	Rscript $<
 
 out/covar_df.rds: src/covar_df.R \

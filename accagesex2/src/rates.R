@@ -19,7 +19,7 @@ options(width = 120) ## to display summary properly
 ## Births (with birth-specific exposure term)
 
 ## Note that birth rates arranged by the age, triangle,
-## and *sex* of the parent
+## and sex of the parent
 
 births <- datasets$reg_births %>%
     collapseDimension(dimension = "sex")

@@ -28,7 +28,11 @@ counts_bthdth <- inner_join(counts_bth, counts_dth, by = "time")
 
 ## Put together into data frame -----------------------------------------------
 
-covar_df <- inner_join(counts_bthdth, rates, by = "time")
+rates_imem <- rates %>%
+    select(time, rate_im, rate_em)
+
+covar_df <- counts_bthdth %>%
+    inner_join(rates_imem, by = "time")
 
 ## Subtract 1 from time, because function 'pomp' uses covariates
 ## with time index 't-1' to predict outcomes with time index 't'
