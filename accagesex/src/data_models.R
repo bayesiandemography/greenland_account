@@ -11,10 +11,10 @@ mod_births <- Model(reg_births ~ Exact(),
 mod_deaths <- Model(reg_deaths ~ Exact(),
                     series = "deaths")
 
-mod_immigration <- Model(reg_immigration ~ PoissonBinomial(prob = 0.98),
+mod_immigration <- Model(reg_immigration ~ PoissonBinomial(prob = 0.95),
                          series = "immigration")
 
-mod_emigration <- Model(reg_emigration ~ PoissonBinomial(prob = 0.98),
+mod_emigration <- Model(reg_emigration ~ PoissonBinomial(prob = 0.95),
                         series = "emigration")
 
 

@@ -1,5 +1,5 @@
 
-## avoid loading 'pomp', which causes name conflics
+## avoid loading 'pomp', which causes name conflicts
 library(dplyr)
 library(tidyr)
 library(purrr)
@@ -36,8 +36,8 @@ data_popn_model <- states %>%
     filter(name == "N") %>%
     mutate(born_before_est_period = birth_cohort <= initial_year) %>%
     mutate(is_accession = if_else(born_before_est_period,
-                                  k %/% 2L == 1L,
-                                  k %/% 2L == 0L)) %>%
+                                  k %% 2L == 1L,
+                                  k %% 2L == 0L)) %>%
     filter(!is_accession) %>%
     mutate(time = if_else(born_before_est_period,
                           initial_year + (k %/% 2),

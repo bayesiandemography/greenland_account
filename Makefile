@@ -1,54 +1,45 @@
 
+
 .PHONY: all
-all: out/reg_popn_df.rds out/reg_births_df.rds out/reg_deaths_df.rds
+all: acctotal \
+  acctotal2 \
+  accagesex2
 
 
+## Obtain raw data from Statistics Greenland website,
+## and create CSV files in 'data' folder
 
-## Make input datasets --------------------------------------------------------
-
-## Pull data from Statistics Greenland website
-
-out/pxweb_nonbirths.rds: src/pxweb_nonbirths.R
-	Rscript $<
-
-
-out/pxweb_births.rds: src/pxweb_births.R
-	Rscript $<
+.PHONY: rawdata
+rawdata:
+	$(MAKE) -C rawdata
 
 
-## Tidy non-births data
+## Estimate account with no age and sex, using 'demest'
 
-out/nonbirths.rds: src/nonbirths.R \
-  out/pxweb_nonbirths.rds
-	Rscript $<
-
-
-## Make data frames to hold registered population,
-## registered births, registered deaths, registered
-## immigration, and registered emigration
-
-data/reg_popn_df.csv: src/reg_popn_df.R \
-  out/nonbirths.rds
-	Rscript $<
-
-data/reg_births_df.csv: src/reg_births_df.R \
-  out/pxweb_births.rds
-	Rscript $<
-
-data/reg_deaths_df.csv: src/reg_deaths_df.R \
-  out/nonbirths.rds
-	Rscript $<
-
-data/reg_immigration_df.csv: src/reg_immigration_df.R \
-  out/nonbirths.rds
-	Rscript $<
-
-data/reg_emigration_df.csv: src/reg_emigration_df.R \
-  out/nonbirths.rds
-	Rscript $<
+.PHONY: acctotal
+acctotal:
+	$(MAKE) -C acctotal
 
 
-## 
+## Estimate account with no age and sex, using 'pomp'
+
+.PHONY: acctotal2
+acctotal2:
+	$(MAKE) -C acctotal2
+
+
+## Estimate account with age and sex, using 'demest'
+
+.PHONY: accagesex
+accagesex:
+	$(MAKE) -C accagesex
+
+
+## Estimate account with age and sex, using 'pomp'
+
+.PHONY: accagesex2
+accagesex2:
+	$(MAKE) -C accagesex2
 
 
 
@@ -56,8 +47,18 @@ data/reg_emigration_df.csv: src/reg_emigration_df.R \
 
 .PHONY: clean
 clean:
-	rm -rf out
-	mkdir out
+	rm -rf rawdata/out
+	mkdir rawdata/out
+	rm -rf data
+	mkdir data
+	rm -rf acctotal/out
+	mkdir acctotal/out
+	rm -rf acctotal2/out
+	mkdir acctotal2/out
+	rm -rf accagesex/out
+	mkdir accagesex/out
+	rm -rf accagesex2/out
+	mkdir accagesex2/out
 
 
 
