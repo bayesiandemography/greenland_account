@@ -8,7 +8,8 @@ all: ../data/reg_popn_region.csv \
   ../data/reg_births_region.csv \
   ../data/reg_deaths_region.csv \
   ../data/reg_immigration_region.csv \
-  ../data/reg_emigration_region.csv
+  ../data/reg_emigration_region.csv \
+  ../data/reg_internal_region.csv
 
 
 ## Pull data from Statistics Greenland website and tidy -----------------------
@@ -39,6 +40,10 @@ out/pxweb_births.rds: src/pxweb_births.R
 	Rscript $<
 
 ../data/reg_emigration_region.csv: src/reg_emigration_region.R \
+  out/pxweb_nonbirths.rds
+	Rscript $<
+
+../data/reg_internal_region.csv: src/reg_internal_region.R \
   out/pxweb_nonbirths.rds
 	Rscript $<
 
