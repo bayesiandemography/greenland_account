@@ -13,7 +13,10 @@ all: ../data/reg_popn.csv \
 
 ## Pull data from Statistics Greenland website and tidy -----------------------
 
-out/pxweb.rds: src/pxweb.R
+out/pxweb_nonbirths.rds: src/pxweb_nonbirths.R
+	Rscript $<
+
+out/pxweb_births.rds: src/pxweb_births.R
 	Rscript $<
 
 

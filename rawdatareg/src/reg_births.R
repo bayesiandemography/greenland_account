@@ -1,14 +1,16 @@
 
-## Create 'reg_births' data frame from 'pxweb_births'
+## Create 'reg_births' data frame from 'pxweb'
 
 library(dplyr)
 library(assertr)
 library(readr)
 library(tidyr)
 
-pxweb_births <- readRDS("out/pxweb_births.rds")
+pxweb <- readRDS("out/pxweb.rds")
 
-reg_births <- pxweb_births %>%
+reg_births <- pxweb %>%
+    filter(event == "Birth")
+    
     select(cohort = "mother's year of birth",
            age = "mother's age",
            sex = gender,

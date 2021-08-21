@@ -8,14 +8,14 @@ url <- "https://bank.stat.gl/api/v1/en/Greenland/BE/BE80/BEXCALCR.PX"
 
 query <- list("year of birth" = as.character(1900:2020),
               "place of birth" = "T",
-              event = c("P","B","I","O","D","T","F","C","U"),
+              event = c("P","I","O","D","T","F","C","U"),
               area = c("955","956","957","959","960","961"),
               gender = c("K", "M"),
               "triangles(lexis)" = c("0", "1"),
               time = as.character(2011:2021))
 
-pxweb <- pxweb_get(url = url,
-                   query = query) %>%
+pxweb_nonbirths <- pxweb_get(url = url,
+                             query = query) %>%
     as.data.frame(column.name.type = "text",
                   variable.value.type = "text") %>%
     tibble() %>%
@@ -33,5 +33,5 @@ pxweb <- pxweb_get(url = url,
            count = as.integer(count))
 
 
-saveRDS(pxweb,
-        file = "out/pxweb.rds")
+saveRDS(pxweb_nonbirths,
+        file = "out/pxweb_nonbirths.rds")
