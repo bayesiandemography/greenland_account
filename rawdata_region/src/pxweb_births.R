@@ -32,15 +32,6 @@ pxweb_births <- pxweb_get(url = url,
            age = as.integer(age),
            time = as.integer(time),
            count = as.integer(count)) %>%
-    mutate(triangle = case_when(age == time - cohort ~ "Lower",
-                                age == time - cohort - 1 ~ "Upper",
-                                TRUE ~ "Undefined")) %>%
-    verify(!((triangle == "Undefined") & (count > 0))) %>%
-    filter(triangle != "Undefined") %>%
-    mutate(age = factor(age, levels = seq(from = min(age), to = max(age)))) %>%
-    select(age, triangle, sex, region, time, count) %>%
-    complete(age, triangle, sex, region, time, fill = list(count = 0L)) %>%
-    arrange(time, region, sex, age, triangle) %>%
     tibble()
 
 
