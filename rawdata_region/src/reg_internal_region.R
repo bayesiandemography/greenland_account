@@ -11,8 +11,8 @@ pxweb_nonbirths <- readRDS("out/pxweb_nonbirths.rds")
 reg_internal_region <- pxweb_nonbirths %>%
     filter(event %in% c("Internal in migration", "Internal out migration")) %>%
     mutate(direction = factor(event,
-                              levels = c("Internal in migration", "Internal out migration"),
-                              labels = c("In", "Out"))) %>%
+                              levels = c("Internal out migration", "Internal in migration"),
+                              labels = c("Out", "In"))) %>%
     mutate(age = time - cohort - (triangle == "Upper")) %>%
     mutate(is_valid_age = !is.na(age) & (age >= 0)) %>%
     verify(is_valid_age | (count == 0L)) %>%

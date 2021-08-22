@@ -13,6 +13,10 @@ all: acctotal \
 rawdata:
 	$(MAKE) -C rawdata
 
+.PHONY: rawdata_region
+rawdata_region:
+	$(MAKE) -C rawdata_region
+
 
 ## Estimate account with no age and sex, using 'demest'
 
@@ -42,6 +46,12 @@ accagesex2:
 	$(MAKE) -C accagesex2
 
 
+## Estimate account with age, sex, and region, using 'demest'
+
+.PHONY: accreg
+accagesex:
+	$(MAKE) -C accreg
+
 
 ## Clean up -------------------------------------------------------------------
 
@@ -59,6 +69,8 @@ clean:
 	mkdir accagesex/out
 	rm -rf accagesex2/out
 	mkdir accagesex2/out
+	rm -rf accreg/out
+	mkdir accreg/out
 
 
 

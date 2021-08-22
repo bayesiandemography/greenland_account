@@ -22,6 +22,10 @@ pxweb_births <- pxweb_get(url = url,
                           query = query) %>%
     as.data.frame(column.name.type = "text",
                   variable.value.type = "text") %>%
+    filter(area != "d. Outside municipalities") %>%
+    mutate(area = if_else(area == "d. Kommuneq Qeqertalik",
+                          "d. Kommune Qeqertalik",
+                          area)) %>%
     select(cohort = "mother's year of birth",
            age = "mother's age",
            sex = gender,
