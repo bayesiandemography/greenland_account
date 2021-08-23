@@ -11,16 +11,18 @@ datasets <- readRDS("out/datasets.rds")
 
 filename <- "out/model.est"
 
+set.seed(0)
+
 Sys.time()
 estimateAccount(account = account,
                 systemModels = system_models,
                 datasets = datasets,
                 dataModels = data_models,
                 filename = filename,
-                nBurnin = 10,
-                nSim = 10,
+                nBurnin = 200,
+                nSim = 200,
                 nChain = 4,
-                nThin = 1)
+                nThin = 5)
 Sys.time()
 
 options(width = 120)

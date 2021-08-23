@@ -31,6 +31,9 @@ account <- Movements(population = datasets$reg_popn,
                      exits = list(deaths = datasets$reg_deaths,
                                   emigration = datasets$reg_emigration))
 
+account <- account %>%
+    makeConsistent(fixed = c("births", "deaths", "internal"))
+
 saveRDS(account,
         file = "out/account.rds")
 

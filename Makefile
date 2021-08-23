@@ -49,7 +49,7 @@ accagesex2:
 ## Estimate account with age, sex, and region, using 'demest'
 
 .PHONY: accreg
-accagesex:
+accreg:
 	$(MAKE) -C accreg
 
 

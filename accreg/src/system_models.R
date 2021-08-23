@@ -34,7 +34,7 @@ mod_popn <- Model(population ~ Poisson(mean ~ age * sex * region + region * time
 mod_births <- Model(births ~ Poisson(mean ~ age + sex + region + time),
                     age ~ prior_age,
                     time ~ prior_time,
-                    jump = 0.1)
+                    jump = 0.4)
 
 mod_deaths <- Model(deaths ~ Poisson(mean ~ age * sex + region + time),
                     age ~ prior_age,
