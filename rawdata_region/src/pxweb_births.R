@@ -25,7 +25,8 @@ pxweb_births <- pxweb_get(url = url,
     filter(area != "d. Outside municipalities") %>%
     mutate(area = if_else(area == "d. Kommuneq Qeqertalik",
                           "d. Kommune Qeqertalik",
-                          area)) %>%
+                          area),
+           area = sub("^d\\. ", "", area)) %>%
     select(cohort = "mother's year of birth",
            age = "mother's age",
            sex = gender,

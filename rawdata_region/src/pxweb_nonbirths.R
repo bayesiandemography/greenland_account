@@ -20,6 +20,7 @@ pxweb_nonbirths <- pxweb_get(url = url,
                   variable.value.type = "text") %>%
     tibble() %>%
     filter(area != "d. Kommunit avataani") %>% ## area outside municipalities
+    mutate(area = sub("^d\\. ", "", area)) %>%
     select(cohort = "year of birth",
            event,
            region = area,
